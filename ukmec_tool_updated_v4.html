@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UKMEC 2025 Contraception Eligibility Tool</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f8fafc;color:#0f172a}
+    .wrap{max-width:900px;margin:0 auto;padding:24px}
+    .card{background:#fff;border:1px solid #e2e8f0;border-radius:20px;padding:20px;box-shadow:0 1px 2px rgba(0,0,0,.04);margin-bottom:20px}
+    .btn{border:none;border-radius:14px;padding:12px 16px;font-weight:700;cursor:pointer}
+    .btn-dark{background:#0f172a;color:#fff}
+    .btn-light{background:#fff;border:1px solid #cbd5e1;color:#0f172a}
+    .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    @media (max-width:700px){.grid2{grid-template-columns:1fr}}
+    input,select,textarea{width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid #cbd5e1;border-radius:14px;font:inherit;background:#fff}
+    textarea{min-height:260px}
+    .small{font-size:12px;color:#64748b}
+    .pill{display:inline-block;padding:8px 12px;border-radius:999px;border:1px solid #fdba74;background:#fff7ed;color:#c2410c;margin:4px 8px 4px 0;font-size:14px}
+    .selected-pill{display:inline-block;padding:8px 12px;border-radius:999px;border:1px solid #cbd5e1;background:#f8fafc;color:#334155;margin:4px 8px 4px 0;font-size:14px;cursor:pointer}
+    .group{border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;margin-bottom:14px}
+    .group h4{margin:0;padding:12px 16px;background:#f1f5f9;font-size:14px}
+    .group .items{padding:10px 14px;display:grid;grid-template-columns:1fr;gap:6px;max-height:220px;overflow:auto}
+    .auto-tag{font-size:11px;color:#c2410c;font-weight:700;margin-left:6px}
+    .tiny{font-size:11px;color:#64748b}
+    label.ck{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:#0f172a}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{border-top:1px solid #e2e8f0;padding:12px;vertical-align:top;text-align:left}
+    th{background:#f8fafc}
+    .badge{display:inline-block;padding:6px 10px;border-radius:999px;font-weight:700;border:1px solid #cbd5e1}
+    .b1{background:#dcfce7;color:#166534;border-color:#bbf7d0}
+    .b2{background:#fef3c7;color:#92400e;border-color:#fde68a}
+    .b3{background:#fed7aa;color:#9a3412;border-color:#fdba74}
+    .b4{background:#fecaca;color:#991b1b;border-color:#fca5a5}
+    .b0{background:#f1f5f9;color:#475569;border-color:#cbd5e1}
+    .note{border:1px solid #bfdbfe;background:#eff6ff;border-radius:14px;padding:12px 14px;margin-bottom:10px}
+    .warn{border:1px solid #fde68a;background:#fffbeb;border-radius:14px;padding:12px 14px;margin-bottom:10px}
+    .muted{background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;padding:14px}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap">
+      <div>
+        <div class="small" style="font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#c2410c">UKMEC 2025</div>
+        <h1 style="margin:8px 0 10px;font-size:32px">Contraception eligibility summary tool</h1>
+        <div class="small" style="font-size:14px;line-height:1.5;max-width:680px">Select patient details and comorbidities to generate a UKMEC summary for routine hormonal and intrauterine contraception. This version removes emergency contraception and starts clean with each new patient.</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-light" id="newPatientBtn">New patient</button>
+        <button class="btn btn-dark" id="copyTopBtn">Copy summary</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>1. Patient's details</h2>
+    <div class="grid2">
+      <label><div class="small">Age (years)</div><input id="age" type="number"></label>
+      <label><div class="small">BMI (kg/m²)</div><input id="bmi" type="number" step="0.1"></label>
+      <label><div class="small">Postpartum weeks</div><input id="postpartumWeeks" type="number" step="0.1"></label>
+      <label><div class="small">Smoking status</div><select id="smoking"><option value="none">Non-smoker</option><option value="current">Current smoker</option><option value="ex">Ex-smoker</option></select></label>
+      <label id="cigsWrap" style="display:none"><div class="small">Cigarettes per day</div><input id="cigsPerDay" type="number"></label>
+      <label id="stoppedWrap" style="display:none"><div class="small">Years since stopping</div><input id="stoppedSmokingYears" type="number" step="0.1"></label>
+      <label class="ck" style="padding-top:22px"><input id="breastfeeding" type="checkbox" style="width:auto"> <span>Breastfeeding</span></label>
+    </div>
+    <div class="muted" style="margin-top:14px">
+      <div><strong>Applied UKMEC rows</strong></div>
+      <div id="appliedRows" style="margin-top:8px"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2. Add comorbidities</h2>
+    <div class="small" style="margin:8px 0 10px">Important comorbidities only are shown below. Age, BMI, smoking and postpartum-related rows are selected automatically from the patient details above.</div>
+    <input id="search" placeholder="Search important comorbidities..." style="margin:10px 0 14px">
+    <div id="comorbidityGroups"></div>
+  </div>
+
+  <div class="card">
+    <h2>3. Selected conditions</h2>
+    <div id="selectedConditions"></div>
+  </div>
+
+  <div class="card">
+    <h2>4. Routine contraception summary</h2>
+    <div class="small" style="margin-bottom:10px">Highest UKMEC category is shown for each method. Where initiation and continuation differ, both are shown as I / C.</div>
+    <table>
+      <thead><tr><th>Method</th><th>UKMEC</th><th>Contributors</th></tr></thead>
+      <tbody id="routineSummary"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>5. Notes and warnings</h2>
+    <div id="notesWarnings"></div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
+      <h2 style="margin:0">6. Copyable summary</h2>
+    </div>
+    <textarea id="summaryText" readonly spellcheck="false" style="margin-top:12px;user-select:text;-webkit-user-select:text;"></textarea>
+  </div>
+</div>
+<script>
+const METHODS = ["Cu-IUD","LNG-IUD","IMP","DMPA","POP","CHC"];
+const rows = [{"id": "age_lt20_iud", "group": "Personal characteristics", "label": "Age <20 years (Cu-IUD and LNG-IUD only)", "scope": "routine", "categories": {"Cu-IUD": 2, "LNG-IUD": 2, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "age_dmpa_lt18", "group": "Personal characteristics", "label": "Age <18 years (DMPA category 2)", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 2, "POP": 1, "CHC": 1}}, {"id": "age_dmpa_gt45", "group": "Personal characteristics", "label": "Age >45 years (DMPA category 2)", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 2, "POP": 1, "CHC": 1}}, {"id": "age_chc_40_50", "group": "Personal characteristics", "label": "Age 40 to 50 years (CHC category 2)", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 2}}, {"id": "nulliparous", "group": "Personal characteristics", "label": "Nulliparous", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "parous", "group": "Personal characteristics", "label": "Parous", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "postpartum_0_3_with_vte", "group": "Personal characteristics", "label": "Postpartum 0 to <3 weeks with other VTE risk factors", "scope": "routine", "categories": {"LNG-IUD": 1, "IMP": 3, "DMPA": 1, "POP": 4, "CHC": 4}}, {"id": "postpartum_0_3_without_vte", "group": "Personal characteristics", "label": "Postpartum 0 to <3 weeks without other VTE risk factors", "scope": "routine", "categories": {"LNG-IUD": 1, "IMP": 2, "DMPA": 1, "POP": 3, "CHC": 3}}, {"id": "postpartum_3_6_with_vte", "group": "Personal characteristics", "label": "Postpartum 3 to <6 weeks with other VTE risk factors", "scope": "routine", "categories": {"LNG-IUD": 1, "IMP": 3, "DMPA": 1, "POP": 3, "CHC": 3}}, {"id": "postpartum_3_6_without_vte", "group": "Personal characteristics", "label": "Postpartum 3 to <6 weeks without other VTE risk factors", "scope": "routine", "categories": {"LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 2, "CHC": 2}}, {"id": "postpartum_gte6", "group": "Personal characteristics", "label": "Postpartum ≥6 weeks", "scope": "routine", "categories": {"LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "pp_iud_0_48h", "group": "Personal characteristics", "label": "Postpartum IUD insertion 0 to ≤48 hours", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1}}, {"id": "pp_iud_48h_4w", "group": "Personal characteristics", "label": "Postpartum IUD insertion 48 hours to 4 weeks", "scope": "routine", "categories": {"Cu-IUD": 3, "LNG-IUD": 3}}, {"id": "pp_iud_gte4w", "group": "Personal characteristics", "label": "Postpartum IUD insertion ≥4 weeks", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1}}, {"id": "postpartum_sepsis", "group": "Personal characteristics", "label": "Postpartum sepsis", "scope": "routine", "categories": {"Cu-IUD": 4, "LNG-IUD": 4}}, {"id": "bf_0_6w", "group": "Personal characteristics", "label": "Breastfeeding 0 to <6 weeks postpartum", "scope": "routine", "categories": {"IMP": 1, "DMPA": 2, "POP": 1, "CHC": 4}}, {"id": "bf_6w_6m", "group": "Personal characteristics", "label": "Breastfeeding ≥6 weeks to <6 months postpartum", "scope": "routine", "categories": {"IMP": 1, "DMPA": 1, "POP": 1, "CHC": 2}}, {"id": "bf_gte6m", "group": "Personal characteristics", "label": "Breastfeeding ≥6 months postpartum", "scope": "routine", "categories": {"IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "postab_first", "group": "Personal characteristics", "label": "Post-abortion first trimester", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "postab_second", "group": "Personal characteristics", "label": "Post-abortion second trimester", "scope": "routine", "categories": {"Cu-IUD": 2, "LNG-IUD": 2, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "postab_sepsis", "group": "Personal characteristics", "label": "Post-abortion sepsis", "scope": "routine", "categories": {"Cu-IUD": 4, "LNG-IUD": 4, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "ectopic_past", "group": "Personal characteristics", "label": "Past ectopic pregnancy", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "pelvic_surgery_history", "group": "Personal characteristics", "label": "History of pelvic surgery", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "smoking_lt35", "group": "Smoking", "label": "Smoking, age <35 years", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 2}}, {"id": "smoking_ge35_lt15", "group": "Smoking", "label": "Smoking, age ≥35 years and <15 cigarettes/day", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 3}}, {"id": "smoking_ge35_ge15", "group": "Smoking", "label": "Smoking, age ≥35 years and ≥15 cigarettes/day", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 4}}, {"id": "stopped_smoking_lt1y", "group": "Smoking", "label": "Stopped smoking <1 year ago (age ≥35 years)", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 3}}, {"id": "stopped_smoking_ge1y", "group": "Smoking", "label": "Stopped smoking ≥1 year ago (age ≥35 years)", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 2}}, {"id": "ecig_note", "group": "Smoking", "label": "E-cigarette/vaping user", "scope": "note", "note": "UKMEC does not include e-cigarettes as a MEC category because evidence is insufficient; alternatives to CHC should be prioritised."}, {"id": "obesity_30_34", "group": "Weight", "label": "BMI 30–34.9 kg/m²", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 2}}, {"id": "obesity_ge35", "group": "Weight", "label": "BMI ≥35 kg/m²", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 2, "POP": 1, "CHC": 3}}, {"id": "bariatric_bmi_lt30", "group": "Weight", "label": "History of bariatric surgery with BMI <30 kg/m²", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "bariatric_bmi_30_34", "group": "Weight", "label": "History of bariatric surgery with BMI 30–34.9 kg/m²", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 2}}, {"id": "bariatric_bmi_ge35", "group": "Weight", "label": "History of bariatric surgery with BMI ≥35 kg/m²", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 2, "POP": 1, "CHC": 3}}, {"id": "organ_tx_complicated", "group": "Organ transplant", "label": "Complicated organ transplant", "scope": "routine", "categories": {"Cu-IUD": {"i": 3, "c": 2}, "LNG-IUD": {"i": 3, "c": 2}, "IMP": 2, "DMPA": 2, "POP": 2, "CHC": 3}}, {"id": "organ_tx_uncomplicated", "group": "Organ transplant", "label": "Uncomplicated organ transplant", "scope": "routine", "categories": {"Cu-IUD": 2, "LNG-IUD": 2, "IMP": 2, "DMPA": 2, "POP": 2, "CHC": 2}}, {"id": "cvd_multiple", "group": "Cardiovascular disease", "label": "Multiple risk factors for cardiovascular disease", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 2, "IMP": 2, "DMPA": 3, "POP": 2, "CHC": 3}}, {"id": "htn_controlled", "group": "Cardiovascular disease", "label": "Controlled hypertension", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 2, "POP": 1, "CHC": 3}}, {"id": "htn_stage1", "group": "Cardiovascular disease", "label": "Stage 1 hypertension", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 2, "POP": 1, "CHC": 3}}, {"id": "htn_stage23", "group": "Cardiovascular disease", "label": "Stage 2 or 3 hypertension", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 2, "POP": 1, "CHC": 4}}, {"id": "vascular_disease", "group": "Cardiovascular disease", "label": "Vascular disease", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 2, "IMP": 2, "DMPA": 3, "POP": 2, "CHC": 4}}, {"id": "high_bp_pregnancy_history", "group": "Cardiovascular disease", "label": "History of high blood pressure during pregnancy", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 2}}, {"id": "ihd_current_history", "group": "Cardiovascular disease", "label": "Current or history of ischaemic heart disease", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": {"i": 2, "c": 3}, "IMP": {"i": 2, "c": 3}, "DMPA": 3, "POP": {"i": 2, "c": 3}, "CHC": 4}}, {"id": "stroke_tia", "group": "Cardiovascular disease", "label": "Stroke or transient ischaemic attack", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 2, "IMP": {"i": 2, "c": 3}, "DMPA": 3, "POP": {"i": 2, "c": 3}, "CHC": 4}}, {"id": "dyslipidaemia", "group": "Cardiovascular disease", "label": "Known dyslipidaemias", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 2, "IMP": 2, "DMPA": 2, "POP": 2, "CHC": 2}}, {"id": "vte_history_current", "group": "Venous thromboembolism (VTE)", "label": "History of VTE or current VTE (on anticoagulants)", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 2, "IMP": 2, "DMPA": 3, "POP": 2, "CHC": 4}}, {"id": "vte_family_history", "group": "Venous thromboembolism (VTE)", "label": "Family history of VTE (first degree relative)", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 2, "POP": 1, "CHC": 3}}, {"id": "vte_major_surgery", "group": "Venous thromboembolism (VTE)", "label": "Major surgery", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 2, "DMPA": {"i": 3, "c": 2}, "POP": 2, "CHC": 4}}, {"id": "vte_immobility", "group": "Venous thromboembolism (VTE)", "label": "Immobility (e.g. wheelchair use, chronic conditions)", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 2, "POP": 1, "CHC": 3}}, {"id": "vte_multiple_risks", "group": "Venous thromboembolism (VTE)", "label": "Multiple risk factors for VTE", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 3, "POP": 1, "CHC": 4}}, {"id": "varicose_veins", "group": "Venous thromboembolism (VTE)", "label": "Varicose veins", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "superficial_venous_thrombosis", "group": "Venous thromboembolism (VTE)", "label": "Superficial venous thrombosis", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 2, "POP": 1, "CHC": 2}}, {"id": "thrombogenic_mutation", "group": "Venous thromboembolism (VTE)", "label": "Known thrombogenic mutation", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 2, "IMP": 2, "DMPA": 3, "POP": 2, "CHC": 4}}, {"id": "valvular_uncomplicated", "group": "Cardiac disease", "label": "Valvular or congenital heart disease, uncomplicated", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 2}}, {"id": "valvular_complicated", "group": "Cardiac disease", "label": "Valvular or congenital heart disease, complicated", "scope": "routine", "categories": {"Cu-IUD": 2, "LNG-IUD": 2, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 4}}, {"id": "cardiomyopathy_normal", "group": "Cardiac disease", "label": "Cardiomyopathy with normal cardiac function", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 2}}, {"id": "cardiomyopathy_impaired", "group": "Cardiac disease", "label": "Cardiomyopathy with impaired cardiac function", "scope": "routine", "categories": {"Cu-IUD": 2, "LNG-IUD": 2, "IMP": 2, "DMPA": 2, "POP": 2, "CHC": 4}}, {"id": "af", "group": "Cardiac disease", "label": "Atrial fibrillation", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 2, "IMP": 2, "DMPA": 2, "POP": 2, "CHC": 4}}, {"id": "long_qt", "group": "Cardiac disease", "label": "Known long QT syndrome", "scope": "routine", "categories": {"Cu-IUD": {"i": 1, "c": 2}, "LNG-IUD": {"i": 1, "c": 2}, "IMP": 1, "DMPA": 2, "POP": 1, "CHC": 2}}, {"id": "headache_nonmigraine", "group": "Neurological conditions", "label": "Non-migrainous headaches", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": {"i": 1, "c": 2}}}, {"id": "migraine_without_aura", "group": "Neurological conditions", "label": "Migraine without aura, any age", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 2, "IMP": 2, "DMPA": 2, "POP": {"i": 1, "c": 2}, "CHC": {"i": 2, "c": 3}}}, {"id": "migraine_with_aura", "group": "Neurological conditions", "label": "Migraine with aura, any age", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 2, "IMP": 2, "DMPA": 2, "POP": 2, "CHC": 4}}, {"id": "migraine_with_aura_history", "group": "Neurological conditions", "label": "History (≥5 years ago) of migraine with aura", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 2, "IMP": 2, "DMPA": 2, "POP": 2, "CHC": 3}}, {"id": "iih", "group": "Neurological conditions", "label": "Idiopathic intracranial hypertension (IIH)", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 2}}, {"id": "epilepsy", "group": "Neurological conditions", "label": "Epilepsy", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "anti_epileptic_note", "group": "Neurological conditions", "label": "Taking anti-epileptic drugs", "scope": "note", "note": "Certain anti-epileptic drugs can affect the bioavailability of steroid hormones in hormonal contraception. Check current interaction guidance separately."}, {"id": "ms_immobile", "group": "Neurological conditions", "label": "Multiple sclerosis with prolonged immobility", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 2, "POP": 1, "CHC": 3}}, {"id": "ms_mobile", "group": "Neurological conditions", "label": "Multiple sclerosis without prolonged immobility", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 2, "POP": 1, "CHC": 1}}, {"id": "mood_note", "group": "Mental health conditions", "label": "Anxiety and mood disorders", "scope": "note", "note": "There is not consistent evidence that hormonal contraceptives worsen or improve anxiety or mood disorders in those with pre-existing conditions. Provide individualised counselling and advise mood monitoring."}, {"id": "vaginal_bleeding_irregular", "group": "Breast and reproductive tract conditions", "label": "Irregular vaginal bleeding without heavy bleeding", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 2, "DMPA": 2, "POP": 2, "CHC": 1}}, {"id": "vaginal_bleeding_heavy", "group": "Breast and reproductive tract conditions", "label": "Heavy or prolonged bleeding", "scope": "routine", "categories": {"Cu-IUD": 2, "LNG-IUD": {"i": 1, "c": 2}, "IMP": 2, "DMPA": 2, "POP": 2, "CHC": 1}}, {"id": "vaginal_bleeding_unexplained", "group": "Breast and reproductive tract conditions", "label": "Unexplained vaginal bleeding suspicious for serious condition, before evaluation", "scope": "routine", "categories": {"Cu-IUD": {"i": 3, "c": 3}, "LNG-IUD": {"i": 2, "c": 2}, "IMP": 3, "DMPA": 3, "POP": 2, "CHC": 2}}, {"id": "endometriosis", "group": "Breast and reproductive tract conditions", "label": "Endometriosis", "scope": "routine", "categories": {"Cu-IUD": 2, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "ovarian_tumours_benign", "group": "Breast and reproductive tract conditions", "label": "Benign ovarian tumours including cysts", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "severe_dysmenorrhoea", "group": "Breast and reproductive tract conditions", "label": "Severe dysmenorrhoea", "scope": "routine", "categories": {"Cu-IUD": 2, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "gtd_undetectable", "group": "Breast and reproductive tract conditions", "label": "Gestational trophoblastic disease with undetectable hCG", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "gtd_decreasing", "group": "Breast and reproductive tract conditions", "label": "Gestational trophoblastic disease with decreasing hCG", "scope": "routine", "categories": {"Cu-IUD": 3, "LNG-IUD": 3, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "gtd_persistent_malignant", "group": "Breast and reproductive tract conditions", "label": "Gestational trophoblastic disease with persistently elevated hCG or malignant disease", "scope": "routine", "categories": {"Cu-IUD": 4, "LNG-IUD": 4, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "cervical_ectropion", "group": "Breast and reproductive tract conditions", "label": "Cervical ectropion", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "cin", "group": "Breast and reproductive tract conditions", "label": "Cervical intraepithelial neoplasia / high-risk HPV", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 2, "IMP": 1, "DMPA": 2, "POP": 1, "CHC": 2}}, {"id": "cervical_cancer_awaiting", "group": "Breast and reproductive tract conditions", "label": "Cervical cancer awaiting treatment", "scope": "routine", "categories": {"Cu-IUD": {"i": 2, "c": 2}, "LNG-IUD": {"i": 1, "c": 2}, "IMP": 4, "DMPA": 2, "POP": 4, "CHC": 2}}, {"id": "radical_trachelectomy", "group": "Breast and reproductive tract conditions", "label": "Radical trachelectomy", "scope": "routine", "categories": {"Cu-IUD": 3, "LNG-IUD": 3, "IMP": 2, "DMPA": 2, "POP": 1, "CHC": 2}}, {"id": "breast_undiagnosed_mass", "group": "Breast and reproductive tract conditions", "label": "Undiagnosed breast mass or breast symptoms", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 2, "IMP": 2, "DMPA": 2, "POP": 2, "CHC": {"i": 3, "c": 2}}}, {"id": "breast_benign", "group": "Breast and reproductive tract conditions", "label": "Benign breast conditions", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "breast_family_history", "group": "Breast and reproductive tract conditions", "label": "Family history of breast cancer", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "brca", "group": "Breast and reproductive tract conditions", "label": "Carrier of high-risk breast cancer mutation (e.g. BRCA1/BRCA2)", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 2, "IMP": 2, "DMPA": 2, "POP": 2, "CHC": 3}}, {"id": "breast_cancer_current", "group": "Breast and reproductive tract conditions", "label": "Current breast cancer", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 4, "IMP": 4, "DMPA": 4, "POP": 4, "CHC": 4}}, {"id": "breast_cancer_past", "group": "Breast and reproductive tract conditions", "label": "Completed treatment for breast cancer", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 3, "IMP": 3, "DMPA": 3, "POP": 3, "CHC": 3}}, {"id": "ovarian_cancer", "group": "Breast and reproductive tract conditions", "label": "Ovarian cancer (epithelial)", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 2, "POP": 1, "CHC": 2}}, {"id": "endometrial_cancer", "group": "Breast and reproductive tract conditions", "label": "Endometrial cancer", "scope": "routine", "categories": {"Cu-IUD": {"i": 1, "c": 2}, "LNG-IUD": {"i": 1, "c": 2}, "IMP": 1, "DMPA": 2, "POP": 1, "CHC": 2}}, {"id": "fibroids_no_distortion", "group": "Breast and reproductive tract conditions", "label": "Uterine fibroids without distortion of uterine cavity", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "fibroids_distortion", "group": "Breast and reproductive tract conditions", "label": "Uterine fibroids with distortion of uterine cavity", "scope": "routine", "categories": {"Cu-IUD": 3, "LNG-IUD": 3, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "uterine_abnormality_distorted", "group": "Breast and reproductive tract conditions", "label": "Anatomical abnormality with distorted uterine cavity", "scope": "routine", "categories": {"Cu-IUD": 3, "LNG-IUD": 3}}, {"id": "uterine_abnormality_other", "group": "Breast and reproductive tract conditions", "label": "Other anatomical abnormality", "scope": "routine", "categories": {"Cu-IUD": 2, "LNG-IUD": 2}}, {"id": "pid_past", "group": "Breast and reproductive tract conditions", "label": "Past pelvic inflammatory disease (assuming no current STI risk)", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "pid_current", "group": "Breast and reproductive tract conditions", "label": "Current pelvic inflammatory disease", "scope": "routine", "categories": {"Cu-IUD": {"i": 4, "c": 2}, "LNG-IUD": {"i": 4, "c": 2}, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "sti_ct_gc_mg_symptomatic", "group": "Breast and reproductive tract conditions", "label": "Current chlamydia, gonorrhoea or mycoplasma genitalium with clinical symptoms/signs", "scope": "routine", "categories": {"Cu-IUD": {"i": 4, "c": 2}, "LNG-IUD": {"i": 4, "c": 2}, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "sti_ct_gc_mg_asymptomatic", "group": "Breast and reproductive tract conditions", "label": "Current chlamydia, gonorrhoea or mycoplasma genitalium without clinical symptoms/signs", "scope": "routine", "categories": {"Cu-IUD": {"i": 3, "c": 2}, "LNG-IUD": {"i": 3, "c": 2}, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "sti_other_current", "group": "Breast and reproductive tract conditions", "label": "Other current STIs (excluding HIV and hepatitis)", "scope": "routine", "categories": {"Cu-IUD": 2, "LNG-IUD": 2, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "vaginitis_tv_bv", "group": "Breast and reproductive tract conditions", "label": "Current vaginitis, including trichomonas or bacterial vaginosis", "scope": "routine", "categories": {"Cu-IUD": 2, "LNG-IUD": 2, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "hiv_high_risk", "group": "Other infections", "label": "High risk for HIV", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "hiv_well_treated", "group": "Other infections", "label": "Living with HIV, clinically well and on treatment", "scope": "routine", "categories": {"Cu-IUD": 2, "LNG-IUD": 2, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "hiv_unwell_untreated", "group": "Other infections", "label": "Living with HIV, clinically unwell and not on treatment", "scope": "routine", "categories": {"Cu-IUD": {"i": 1, "c": 1}, "LNG-IUD": {"i": 1, "c": 1}, "IMP": 3, "DMPA": 2, "POP": 3, "CHC": 2}}, {"id": "hiv_drugs_note", "group": "Other infections", "label": "Taking HIV medications (for treatment or prophylaxis)", "scope": "note", "note": "Drug interactions are not presented in UKMEC as MEC categories relate to safety, not effectiveness. Check HIV interaction guidance separately."}, {"id": "tb_nonpelvic", "group": "Other infections", "label": "Tuberculosis, non-pelvic", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "tb_pelvic", "group": "Other infections", "label": "Tuberculosis, pelvic", "scope": "routine", "categories": {"Cu-IUD": {"i": 4, "c": 3}, "LNG-IUD": {"i": 4, "c": 3}, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "dm_gestational_history", "group": "Endocrine conditions", "label": "History of gestational diabetes", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "dm_nonvascular_noninsulin", "group": "Endocrine conditions", "label": "Diabetes, non-vascular, non-insulin dependent", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 2, "IMP": 2, "DMPA": 2, "POP": 2, "CHC": 2}}, {"id": "dm_nonvascular_insulin", "group": "Endocrine conditions", "label": "Diabetes, non-vascular, insulin dependent", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 2, "IMP": 2, "DMPA": 2, "POP": 2, "CHC": 2}}, {"id": "dm_microvascular", "group": "Endocrine conditions", "label": "Diabetes with nephropathy, retinopathy or neuropathy", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 2, "IMP": 2, "DMPA": 2, "POP": 2, "CHC": 3}}, {"id": "dm_other_vascular", "group": "Endocrine conditions", "label": "Diabetes with other vascular disease", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 2, "IMP": 2, "DMPA": 2, "POP": 2, "CHC": 3}}, {"id": "goitre", "group": "Endocrine conditions", "label": "Simple goitre", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "hyperthyroid", "group": "Endocrine conditions", "label": "Hyperthyroid", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "hypothyroid", "group": "Endocrine conditions", "label": "Hypothyroid", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "ckd_nephrotic", "group": "Endocrine conditions", "label": "Chronic kidney disease: current nephrotic syndrome", "scope": "routine", "categories": {"Cu-IUD": 2, "LNG-IUD": 2, "IMP": 2, "DMPA": 3, "POP": 2, "CHC": 4}}, {"id": "ckd_hd", "group": "Endocrine conditions", "label": "Chronic kidney disease: haemodialysis", "scope": "routine", "categories": {"Cu-IUD": 2, "LNG-IUD": 2, "IMP": 2, "DMPA": 3, "POP": 2, "CHC": 4}}, {"id": "ckd_pd", "group": "Endocrine conditions", "label": "Chronic kidney disease: peritoneal dialysis", "scope": "routine", "categories": {"Cu-IUD": 2, "LNG-IUD": 2, "IMP": 2, "DMPA": 3, "POP": 2, "CHC": 4}}, {"id": "drsp_ckd_note", "group": "Endocrine conditions", "label": "POP excludes drospirenone in severe renal insufficiency / acute renal failure", "scope": "note", "note": "POP category excludes drospirenone (DRSP), which should not be used in severe renal insufficiency or acute renal failure and should be used cautiously if hyperkalaemia risk exists."}, {"id": "gall_chole", "group": "Gastrointestinal conditions", "label": "Gallbladder disease treated by cholecystectomy", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 2, "IMP": 2, "DMPA": 2, "POP": 2, "CHC": 2}}, {"id": "gall_medical", "group": "Gastrointestinal conditions", "label": "Gallbladder disease medically treated", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 2, "IMP": 2, "DMPA": 2, "POP": 2, "CHC": 3}}, {"id": "gall_current", "group": "Gastrointestinal conditions", "label": "Current gallbladder disease", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 2, "IMP": 2, "DMPA": 2, "POP": 2, "CHC": 3}}, {"id": "gall_asymptomatic", "group": "Gastrointestinal conditions", "label": "Asymptomatic gallbladder disease", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 2, "IMP": 2, "DMPA": 2, "POP": 2, "CHC": 2}}, {"id": "cholestasis_pregnancy", "group": "Gastrointestinal conditions", "label": "History of cholestasis, pregnancy related", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 2}}, {"id": "cholestasis_coc", "group": "Gastrointestinal conditions", "label": "History of cholestasis, past combined oral contraception related", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 2, "IMP": 2, "DMPA": 2, "POP": 2, "CHC": 3}}, {"id": "hep_acute_flare", "group": "Gastrointestinal conditions", "label": "Viral hepatitis, acute or flare", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": {"i": 3, "c": 2}}}, {"id": "hep_carrier", "group": "Gastrointestinal conditions", "label": "Viral hepatitis carrier", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "hep_chronic", "group": "Gastrointestinal conditions", "label": "Chronic viral hepatitis", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "cirrhosis_mild", "group": "Gastrointestinal conditions", "label": "Mild compensated cirrhosis", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "cirrhosis_severe", "group": "Gastrointestinal conditions", "label": "Severe decompensated cirrhosis", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 3, "IMP": 3, "DMPA": 3, "POP": 3, "CHC": 4}}, {"id": "liver_fnh", "group": "Gastrointestinal conditions", "label": "Liver tumour, focal nodular hyperplasia", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 2, "IMP": 2, "DMPA": 2, "POP": 2, "CHC": 2}}, {"id": "liver_adenoma", "group": "Gastrointestinal conditions", "label": "Liver tumour, hepatocellular adenoma", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 3, "IMP": 3, "DMPA": 3, "POP": 3, "CHC": 4}}, {"id": "liver_malignant", "group": "Gastrointestinal conditions", "label": "Malignant liver tumour / hepatocellular carcinoma", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 3, "IMP": 3, "DMPA": 3, "POP": 3, "CHC": 4}}, {"id": "ibd", "group": "Gastrointestinal conditions", "label": "Inflammatory bowel disease", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 1, "IMP": 1, "DMPA": 2, "POP": 2, "CHC": 2}}, {"id": "thalassaemia", "group": "Anaemias", "label": "Thalassaemia", "scope": "routine", "categories": {"Cu-IUD": 2, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "sickle_disease", "group": "Anaemias", "label": "Sickle cell disease", "scope": "routine", "categories": {"Cu-IUD": 2, "LNG-IUD": 1, "IMP": 1, "DMPA": 2, "POP": 1, "CHC": 2}}, {"id": "sickle_trait_note", "group": "Anaemias", "label": "Sickle cell trait", "scope": "note", "note": "There is insufficient evidence to give MEC ratings for sickle cell trait. Alternatives to CHC should be prioritised."}, {"id": "iron_deficiency", "group": "Anaemias", "label": "Iron deficiency anaemia", "scope": "routine", "categories": {"Cu-IUD": 2, "LNG-IUD": 1, "IMP": 1, "DMPA": 1, "POP": 1, "CHC": 1}}, {"id": "ra", "group": "Rheumatic diseases", "label": "Rheumatoid arthritis", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 2, "IMP": 2, "DMPA": 2, "POP": 2, "CHC": 2}}, {"id": "sle_no_apl", "group": "Rheumatic diseases", "label": "Systemic lupus erythematosus without antiphospholipid antibodies", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 2, "IMP": 2, "DMPA": 2, "POP": 2, "CHC": 2}}, {"id": "sle_apl", "group": "Rheumatic diseases", "label": "Systemic lupus erythematosus with positive antiphospholipid antibodies", "scope": "routine", "categories": {"Cu-IUD": 1, "LNG-IUD": 2, "IMP": 2, "DMPA": 3, "POP": 2, "CHC": 4}}, {"id": "drug_interaction_note", "group": "Drug interactions", "label": "Taking medication with possible hormonal contraceptive interactions", "scope": "note", "note": "Drug interactions should be checked separately because UKMEC categories relate to safety, not efficacy or effectiveness."}];
+let patient = { age:"", bmi:"", postpartumWeeks:"", breastfeeding:false, smoking:"none", cigsPerDay:"", stoppedSmokingYears:"" };
+let selectedIds = [];
+const rowMap = Object.fromEntries(rows.map(r => [r.id, r]));
+const legend = {"1":"No restriction","2":"Advantages generally outweigh risks","3":"Usually not recommended; specialist judgement/referral often needed","4":"Unacceptable health risk","NA":"Not applicable"};
+function toSplit(v){ if(v===undefined||v===null||v==="NA") return null; if(typeof v === 'number') return {i:v,c:v}; return v; }
+function displayCategory(v){ if(v===undefined) return '—'; if(v==='NA') return 'NA'; if(typeof v==='number') return String(v); return v.i===v.c ? String(v.i) : `I ${v.i} / C ${v.c}`; }
+function maxSeverity(v){ if(v===undefined||v===null||v==='NA') return null; if(typeof v==='number') return v; return Math.max(v.i,v.c); }
+function badgeClass(n){ return n===1?'b1':n===2?'b2':n===3?'b3':n===4?'b4':'b0'; }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+const IMPORTANT_ROW_IDS = new Set([
+  'migraine_without_aura','migraine_with_aura','migraine_with_aura_history','epilepsy',
+  'htn_controlled','htn_stage1','htn_stage23','vascular_disease','cvd_multiple',
+  'ihd_current_history','stroke_tia','dyslipidaemia',
+  'vte_history_current','vte_family_history','vte_multiple_risks','thrombogenic_mutation',
+  'obesity_30_34','obesity_ge35',
+  'breast_cancer_current','breast_cancer_past','brca','breast_undiagnosed_mass',
+  'dm_nonvascular_noninsulin','dm_nonvascular_insulin','dm_microvascular','dm_other_vascular',
+  'ckd_nephrotic','ckd_hd','ckd_pd',
+  'sle_no_apl','sle_apl','ra',
+  'gall_current','cirrhosis_severe','liver_adenoma','liver_malignant','ibd',
+  'hiv_well_treated','hiv_unwell_untreated','tb_pelvic',
+  'sti_ct_gc_mg_symptomatic','sti_ct_gc_mg_asymptomatic',
+  'postab_sepsis','postpartum_sepsis',
+  'endometriosis','fibroids_distortion','uterine_abnormality_distorted',
+  'vaginal_bleeding_unexplained','cervical_cancer_awaiting',
+  'smoking_lt35','smoking_ge35_lt15','smoking_ge35_ge15','stopped_smoking_lt1y','stopped_smoking_ge1y',
+  'age_lt20_iud','age_dmpa_lt18','age_dmpa_gt45','age_chc_40_50',
+  'postpartum_0_3_with_vte','postpartum_0_3_without_vte','postpartum_3_6_with_vte','postpartum_3_6_without_vte','postpartum_gte6',
+  'bf_0_6w','bf_6w_6m','bf_gte6m',
+  'anti_epileptic_note','hiv_drugs_note','drug_interaction_note','drsp_ckd_note','mood_note'
+]);
+
+function getAutoIds(){
+  const ids=[];
+  const hasAge = patient.age !== '';
+  const hasBmi = patient.bmi !== '';
+  const hasPp = patient.postpartumWeeks !== '';
+  const hasCigs = patient.cigsPerDay !== '';
+  const hasStopped = patient.stoppedSmokingYears !== '';
+  const age = hasAge ? Number(patient.age) : NaN;
+  const bmi = hasBmi ? Number(patient.bmi) : NaN;
+  const pp = hasPp ? Number(patient.postpartumWeeks) : NaN;
+  const cigs = hasCigs ? Number(patient.cigsPerDay) : NaN;
+  const stopped = hasStopped ? Number(patient.stoppedSmokingYears) : NaN;
+
+  if(hasAge && !Number.isNaN(age)){
+    if(age < 20) ids.push('age_lt20_iud');
+    if(age < 18) ids.push('age_dmpa_lt18');
+    if(age > 45) ids.push('age_dmpa_gt45');
+    if(age >= 40 && age <= 50) ids.push('age_chc_40_50');
+  }
+
+  if(hasPp && !Number.isNaN(pp)){
+    if(pp < 3) ids.push('postpartum_0_3_without_vte');
+    else if(pp < 6) ids.push('postpartum_3_6_without_vte');
+    else if(pp >= 6) ids.push('postpartum_gte6');
+
+    if(patient.breastfeeding){
+      if(pp < 6) ids.push('bf_0_6w');
+      else if(pp < 24) ids.push('bf_6w_6m');
+      else ids.push('bf_gte6m');
+    }
+  }
+
+  if(hasBmi && !Number.isNaN(bmi)){
+    if(bmi >= 35) ids.push('obesity_ge35');
+    else if(bmi >= 30) ids.push('obesity_30_34');
+  }
+
+  if(patient.smoking === 'current' && hasAge && !Number.isNaN(age)){
+    if(age < 35) ids.push('smoking_lt35');
+    else if(age >= 35 && hasCigs && !Number.isNaN(cigs)){
+      ids.push(cigs >= 15 ? 'smoking_ge35_ge15' : 'smoking_ge35_lt15');
+    }
+  }
+
+  if(patient.smoking === 'ex' && hasAge && age >= 35 && hasStopped && !Number.isNaN(stopped)){
+    ids.push(stopped < 1 ? 'stopped_smoking_lt1y' : 'stopped_smoking_ge1y');
+  }
+
+  return [...new Set(ids)];
+}
+function combinedIds(){ return [...new Set([...getAutoIds(), ...selectedIds])]; }
+function combinedRows(){ return combinedIds().map(id=>rowMap[id]).filter(Boolean); }
+function routineResults(){
+  const selected = combinedRows().filter(r=>r.scope==='routine');
+  return METHODS.map(method => {
+    const contributions = selected.map(row => ({row, value: row.categories ? row.categories[method] : undefined})).filter(x=>x.value!==undefined);
+    if(!contributions.length) return {method, value:undefined, severity:null, contributions:[]};
+    const splits = contributions.map(c=>toSplit(c.value)).filter(Boolean);
+    if(contributions.some(c=>c.value==='NA')) return {method, value:'NA', severity:null, contributions};
+    const i = Math.max(...splits.map(s=>s.i)); const c = Math.max(...splits.map(s=>s.c));
+    return {method, value: i===c ? i : {i,c}, severity: Math.max(i,c), contributions};
+  });
+}
+function notesRows(){ return combinedRows().filter(r=>r.scope==='note'); }
+function warnings(results){ const out=[]; for(const r of results){ const sev2=r.contributions.filter(c=>maxSeverity(c.value)===2).length; const sev3=r.contributions.filter(c=>maxSeverity(c.value)===3).length; if(sev2>1) out.push(`${r.method}: more than one UKMEC 2 condition is present, so cumulative risk may need clinical judgement.`); if(sev3>1) out.push(`${r.method}: more than one UKMEC 3 condition is present, which may amount to an unacceptable risk.`); } return [...new Set(out)]; }
+function patientText(){ const p=[]; if(patient.age) p.push(`Age: ${patient.age}`); if(patient.bmi) p.push(`BMI: ${patient.bmi}`); if(patient.postpartumWeeks) p.push(`Postpartum weeks: ${patient.postpartumWeeks}`); if(patient.breastfeeding) p.push('Breastfeeding: yes'); if(patient.smoking!=='none') p.push(`Smoking: ${patient.smoking}${patient.cigsPerDay?` (${patient.cigsPerDay}/day)`:''}`); if(patient.stoppedSmokingYears) p.push(`Stopped smoking: ${patient.stoppedSmokingYears} year(s) ago`); return p.length?p.join('; '):'No structured demographic details entered.'; }
+function renderAppliedRows(){
+  const auto = getAutoIds().map(id=>rowMap[id]).filter(Boolean);
+  const manual = selectedIds.map(id=>rowMap[id]).filter(Boolean);
+  const rowsSel = [...auto, ...manual.filter(m => !auto.find(a => a.id === m.id))];
+  const el=document.getElementById('appliedRows');
+  el.innerHTML = rowsSel.length ? rowsSel.map(r=>`<span class="pill">${escapeHtml(r.label)}</span>`).join('') : '<span class="small">None selected</span>';
+}
+function renderGroups(){
+  const q=document.getElementById('search').value.trim().toLowerCase();
+  const autoIds = new Set(getAutoIds());
+  const groups={};
+  rows
+    .filter(r => IMPORTANT_ROW_IDS.has(r.id))
+    .filter(r => !q || (`${r.group} ${r.label} ${r.note||''}`).toLowerCase().includes(q))
+    .forEach(r=>{ groups[r.group] = groups[r.group] || []; groups[r.group].push(r); });
+
+  const order = [
+    'Personal characteristics','Smoking','Weight','Cardiovascular disease','Venous thromboembolism',
+    'Neurological conditions','Breast and reproductive tract conditions','Other infections',
+    'Endocrine conditions','Gastrointestinal conditions','Anaemias','Rheumatic diseases','Drug interactions'
+  ];
+
+  const html = order.filter(group => groups[group]?.length).map(group => {
+    const items = groups[group];
+    return `<div class="group"><h4>${escapeHtml(group)}</h4><div class="items">${
+      items.map(item => {
+        const checked = autoIds.has(item.id) || selectedIds.includes(item.id);
+        const disabled = autoIds.has(item.id) ? 'disabled' : '';
+        const tag = autoIds.has(item.id) ? '<span class="auto-tag">auto</span>' : '';
+        const note = item.scope === 'note' ? '<span class="tiny">(note)</span>' : '';
+        return `<label class="ck"><input type="checkbox" data-id="${item.id}" ${checked?'checked':''} ${disabled} style="width:auto"> <span>${escapeHtml(item.label)} ${tag} ${note}</span></label>`;
+      }).join('')
+    }</div></div>`;
+  }).join('');
+
+  document.getElementById('comorbidityGroups').innerHTML = html || '<div class="small">No matching comorbidities.</div>';
+  document.querySelectorAll('#comorbidityGroups input[type=checkbox]').forEach(cb=>cb.addEventListener('change',e=>{
+    const id=e.target.getAttribute('data-id');
+    if(e.target.checked){
+      if(!selectedIds.includes(id)) selectedIds.push(id);
+    } else {
+      selectedIds = selectedIds.filter(x=>x!==id);
+    }
+    renderAll();
+  }));
+}
+function renderSelected(){ const el=document.getElementById('selectedConditions'); const rs=combinedRows(); el.innerHTML = rs.length ? rs.map(r=>`<span class="selected-pill" data-id="${r.id}">${escapeHtml(r.label)} ×</span>`).join('') : '<span class="small">No conditions selected yet.</span>'; document.querySelectorAll('#selectedConditions .selected-pill').forEach(x=>x.onclick=()=>{ const id=x.getAttribute('data-id'); selectedIds=selectedIds.filter(s=>s!==id); renderAll(); }); }
+function renderSummary(){ const results=routineResults(); document.getElementById('routineSummary').innerHTML = results.map(r=>`<tr><td><strong>${r.method}</strong></td><td><span class="badge ${badgeClass(r.severity)}">${displayCategory(r.value)}</span></td><td>${r.contributions.length ? escapeHtml(r.contributions.map(c=>c.row.label).join('; ')) : 'No selected rows affecting this method'}</td></tr>`).join('');
+  const notes = notesRows(); const warns = warnings(results); const nw=[]; notes.forEach(n=>nw.push(`<div class="note"><strong>${escapeHtml(n.label)}</strong><div style="margin-top:6px">${escapeHtml(n.note)}</div></div>`)); warns.forEach(w=>nw.push(`<div class="warn">${escapeHtml(w)}</div>`)); if(!nw.length) nw.push('<div class="small">No additional notes triggered.</div>'); document.getElementById('notesWarnings').innerHTML=nw.join('');
+  const lines=[]; lines.push('UKMEC 2025 contraceptive eligibility summary',''); lines.push(`Patient details: ${patientText()}`,''); lines.push('Selected UKMEC conditions:'); const rs=combinedRows(); if(rs.length) rs.forEach(r=>lines.push(`- ${r.group}: ${r.label}`)); else lines.push('- None selected'); lines.push('','Routine contraception:'); results.forEach(r=>lines.push(`- ${r.method}: ${displayCategory(r.value)}${r.severity ? ` (${legend[String(r.severity)]})` : r.value==='NA' ? ' (Not applicable)' : ''}`)); if(notes.length){ lines.push('','Additional notes:'); notes.forEach(n=>lines.push(`- ${n.label}: ${n.note}`)); } if(warns.length){ lines.push('','Warnings:'); warns.forEach(w=>lines.push(`- ${w}`)); } lines.push('','Footnote: This summary is a support tool based on UKMEC 2025 summary tables. It does not replace individual clinical assessment, specialist advice, or drug interaction checking. Each case should be reviewed individually before making a final prescribing or fitting decision.'); document.getElementById('summaryText').value = lines.join('\n');
+}
+function syncInputs(){ patient.age=document.getElementById('age').value; patient.bmi=document.getElementById('bmi').value; patient.postpartumWeeks=document.getElementById('postpartumWeeks').value; patient.breastfeeding=document.getElementById('breastfeeding').checked; patient.smoking=document.getElementById('smoking').value; patient.cigsPerDay=document.getElementById('cigsPerDay').value; patient.stoppedSmokingYears=document.getElementById('stoppedSmokingYears').value; document.getElementById('cigsWrap').style.display = patient.smoking==='current' ? 'block' : 'none'; document.getElementById('stoppedWrap').style.display = patient.smoking==='ex' ? 'block' : 'none'; }
+function renderAll(){ syncInputs(); renderAppliedRows(); renderGroups(); renderSelected(); renderSummary(); }
+function newPatient(){ patient={ age:"", bmi:"", postpartumWeeks:"", breastfeeding:false, smoking:"none", cigsPerDay:"", stoppedSmokingYears:"" }; selectedIds=[]; ['age','bmi','postpartumWeeks','cigsPerDay','stoppedSmokingYears','search'].forEach(id=>document.getElementById(id).value=''); document.getElementById('breastfeeding').checked=false; document.getElementById('smoking').value='none'; document.getElementById('cigsWrap').style.display='none'; document.getElementById('stoppedWrap').style.display='none'; renderAll(); }
+async function copySummary(){
+  const el = document.getElementById('summaryText');
+  const text = el ? (el.value || '') : '';
+  const btn = document.getElementById('copyTopBtn');
+
+  function flash(msg){
+    if(!btn) return;
+    const original = btn.dataset.originalText || btn.textContent || 'Copy summary';
+    if(!btn.dataset.originalText) btn.dataset.originalText = original;
+    btn.textContent = msg;
+    setTimeout(() => { btn.textContent = btn.dataset.originalText || 'Copy summary'; }, 1600);
+  }
+
+  if(!text){
+    flash('Nothing to copy');
+    return;
+  }
+
+  try{
+    if(navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(text);
+      flash('Copied');
+      return;
+    }
+  }catch(e){}
+
+  try{
+    const temp = document.createElement('textarea');
+    temp.value = text;
+    temp.setAttribute('readonly', '');
+    temp.style.position = 'fixed';
+    temp.style.top = '-1000px';
+    temp.style.left = '-1000px';
+    temp.style.opacity = '0';
+    document.body.appendChild(temp);
+    temp.focus();
+    temp.select();
+    temp.setSelectionRange(0, temp.value.length);
+    const ok = document.execCommand('copy');
+    document.body.removeChild(temp);
+    if(!ok) throw new Error('copy failed');
+    flash('Copied');
+  }catch(e){
+    try{
+      el.focus();
+      el.select();
+      el.setSelectionRange(0, text.length);
+    }catch(_e){}
+    flash('Select text below');
+  }
+}
+['age','bmi','postpartumWeeks','cigsPerDay','stoppedSmokingYears','smoking','breastfeeding','search'].forEach(id=>document.getElementById(id).addEventListener('input', renderAll));
+document.getElementById('newPatientBtn').addEventListener('click', newPatient);
+document.getElementById('copyTopBtn').addEventListener('click', copySummary); document.getElementById('copyTopBtn').addEventListener('click', copySummary); document.getElementById('copyBottomBtn').addEventListener('click', copySummary);
+renderAll();
+</script>
+</body>
+</html>
